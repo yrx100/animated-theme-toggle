@@ -57,10 +57,8 @@ If the target browser is below these versions, do not polyfill or recreate the a
   - `page-flip`: horizontal page turn
   - `ink`: soft irregular bloom
   - `pixel`: stepped pixel dissolve
-  - `flash`: fast radial light flash
   - `curtain`: center-out curtain
-  - `card-flip`: subtle whole-page card flip
-  - `stars`: multi-point reveal
+  - `stars`: star-shaped reveal
 - Compute the reveal radius for coordinate-based presets with:
 
 ```ts
@@ -75,14 +73,14 @@ Math.hypot(
   - switching to light: animate `::view-transition-new(root)` so the new light theme expands from the click point
   - switching to dark: animate `::view-transition-old(root)` so the old light theme shrinks back into the click point and reveals dark
 - Set `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)` so the browser's default crossfade does not fight the custom clip-path animation.
-- Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flash before the transition tree is removed.
+- Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flicker before the transition tree is removed.
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
 - In SSR frameworks, guard all `window` and `document` access behind client-only hooks, components, or dynamic imports.
 
 ## Assets
 
 - `assets/theme-transition.ts`: dependency-free TypeScript controller with `THEME_ANIMATIONS`, `getAnimation()`, `setAnimation()`, `setMode(mode, event, animationOverride)`, and `toggle(event, animationOverride)`. Copy it into a frontend project or port the functions into an existing store.
-- `assets/theme-transition.css`: starter semantic tokens plus View Transition pseudo-element rules and masks for multi-preset animations. Merge with the project's design tokens instead of replacing unrelated styling.
+- `assets/theme-transition.css`: starter semantic tokens plus View Transition pseudo-element stacking rules for multi-preset animations. Merge with the project's design tokens instead of replacing unrelated styling.
 
 ## Framework Notes
 

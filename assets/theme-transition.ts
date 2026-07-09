@@ -9,9 +9,7 @@ export const THEME_ANIMATIONS = [
   "page-flip",
   "ink",
   "pixel",
-  "flash",
   "curtain",
-  "card-flip",
   "stars",
 ] as const;
 
@@ -243,8 +241,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
   switch (animation) {
     case "blinds":
       root.animate(
-        { clipPath: reveal(["inset(0 100% 0 0)", "inset(0 0 0 0)"]) },
-        { ...baseOptions, duration: duration + 80 },
+        { clipPath: reveal(["inset(0 0 100% 0)", "inset(0 0 0 0)"]) },
+        { ...baseOptions, easing: "steps(9, end)", duration: duration + 80 },
       );
       break;
     case "diagonal":
@@ -262,47 +260,43 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
       root.animate(
         {
           clipPath: reveal(circle),
-          filter: reveal(["brightness(1.25) blur(8px)", "brightness(1) blur(0px)"]),
+          opacity: reveal([0.72, 1]),
+          filter: reveal(["brightness(1.18)", "brightness(1)"]),
         },
-        { ...baseOptions, duration: duration + 120 },
+        { ...baseOptions, duration: duration + 40 },
       );
       break;
     case "page-flip":
       root.animate(
         {
-          opacity: reveal([0.2, 1]),
-          transform: reveal(["perspective(1200px) rotateY(-88deg)", "perspective(1200px) rotateY(0deg)"]),
+          clipPath: reveal(["inset(0 100% 0 0)", "inset(0 0 0 0)"]),
+          opacity: reveal([0.65, 1]),
+          transform: reveal(["translateX(-28px) skewX(-4deg)", "translateX(0) skewX(0deg)"]),
           transformOrigin: ["left center", "left center"],
         },
-        { ...baseOptions, duration: duration + 120 },
+        { ...baseOptions, duration: duration + 40 },
       );
       break;
     case "ink":
       root.animate(
         {
-          clipPath: reveal(circle),
-          filter: reveal(["blur(14px) contrast(1.35)", "blur(0px) contrast(1)"]),
+          clipPath: reveal([
+            `ellipse(0px 0px at ${x}px ${y}px)`,
+            `ellipse(${radius}px ${radius * 0.82}px at ${x}px ${y}px)`,
+          ]),
+          opacity: reveal([0.62, 1]),
+          filter: reveal(["blur(2px)", "blur(0px)"]),
         },
-        { ...baseOptions, duration: duration + 160, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        { ...baseOptions, duration: duration + 90, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
       );
       break;
     case "pixel":
       root.animate(
         {
-          opacity: reveal([0, 1]),
-          filter: reveal(["contrast(1.8)", "contrast(1)"]),
-        },
-        { ...baseOptions, easing: "steps(8, end)", duration: duration + 120 },
-      );
-      break;
-    case "flash":
-      root.animate(
-        {
           clipPath: reveal(circle),
-          opacity: reveal([0.35, 1]),
-          filter: reveal(["brightness(1.9) saturate(1.35)", "brightness(1) saturate(1)"]),
+          opacity: reveal([0.45, 1]),
         },
-        { ...baseOptions, duration: Math.max(280, duration - 120) },
+        { ...baseOptions, easing: "steps(10, end)", duration: duration + 20 },
       );
       break;
     case "curtain":
@@ -311,24 +305,16 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
         { ...baseOptions, duration: duration + 80 },
       );
       break;
-    case "card-flip":
-      root.animate(
-        {
-          opacity: reveal([0, 1]),
-          transform: reveal(["perspective(1000px) translateY(10px) scale(0.96) rotateX(10deg)", "perspective(1000px) translateY(0) scale(1) rotateX(0deg)"]),
-          filter: reveal(["blur(8px)", "blur(0px)"]),
-        },
-        baseOptions,
-      );
-      break;
     case "stars":
       root.animate(
         {
-          clipPath: reveal(circle),
-          opacity: reveal([0.15, 1]),
-          filter: reveal(["brightness(1.45)", "brightness(1)"]),
+          clipPath: reveal([
+            "polygon(50% 7%, 58% 38%, 92% 38%, 64% 57%, 74% 91%, 50% 71%, 26% 91%, 36% 57%, 8% 38%, 42% 38%)",
+            "polygon(0 0, 100% 0, 100% 0, 100% 100%, 100% 100%, 0 100%, 0 100%, 0 0, 0 0, 0 0)",
+          ]),
+          opacity: reveal([0.55, 1]),
         },
-        { ...baseOptions, duration: duration + 180 },
+        { ...baseOptions, duration: duration + 80, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
       );
       break;
     case "circle":

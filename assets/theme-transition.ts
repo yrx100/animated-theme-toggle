@@ -62,12 +62,13 @@ type PseudoElementAnimationOptions = KeyframeAnimationOptions & {
 
 type ThemeAnimationContext = {
   animation: ThemeAnimation;
+  entering: boolean;
   x: number;
   y: number;
   radius: number;
   duration: number;
   easing: string;
-  pseudoElement: "::view-transition-new(root)";
+  pseudoElement: "::view-transition-old(root)" | "::view-transition-new(root)";
 };
 
 function isThemeMode(value: unknown): value is ThemeMode {
@@ -162,7 +163,8 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
       Math.max(y, window.innerHeight - y),
     );
 
-    root.setAttribute("data-theme-transition", "active");
+    const entering = after === "light";
+    root.setAttribute("data-theme-transition", entering ? "expand" : "shrink");
     root.setAttribute("data-theme-animation", nextAnimation);
 
     const transition = transitionDocument.startViewTransition(() => {
@@ -173,12 +175,13 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
     void transition.ready.then(() => {
       animateThemeTransition(root, {
         animation: nextAnimation,
+        entering,
         x,
         y,
         radius,
         duration,
         easing,
-        pseudoElement: "::view-transition-new(root)",
+        pseudoElement: entering ? "::view-transition-new(root)" : "::view-transition-old(root)",
       });
     });
 
@@ -226,7 +229,7 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
 }
 
 function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContext): void {
-  const { animation, x, y, radius, duration, easing, pseudoElement } = context;
+  const { animation, entering, x, y, radius, duration, easing, pseudoElement } = context;
   const baseOptions: PseudoElementAnimationOptions = {
     duration,
     easing,
@@ -235,21 +238,22 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
   };
 
   const circle = [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`];
+  const reveal = <T>(frames: T[]): T[] => (entering ? frames : [...frames].reverse());
 
   switch (animation) {
     case "blinds":
       root.animate(
-        { clipPath: ["inset(0 100% 0 0)", "inset(0 0 0 0)"] },
+        { clipPath: reveal(["inset(0 100% 0 0)", "inset(0 0 0 0)"]) },
         { ...baseOptions, duration: duration + 80 },
       );
       break;
     case "diagonal":
       root.animate(
         {
-          clipPath: [
+          clipPath: reveal([
             "polygon(-35% 0, -15% 0, -35% 100%, -55% 100%)",
             "polygon(-20% 0, 140% 0, 120% 100%, -40% 100%)",
-          ],
+          ]),
         },
         baseOptions,
       );
@@ -257,8 +261,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "spotlight":
       root.animate(
         {
-          clipPath: circle,
-          filter: ["brightness(1.25) blur(8px)", "brightness(1) blur(0px)"],
+          clipPath: reveal(circle),
+          filter: reveal(["brightness(1.25) blur(8px)", "brightness(1) blur(0px)"]),
         },
         { ...baseOptions, duration: duration + 120 },
       );
@@ -266,8 +270,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "page-flip":
       root.animate(
         {
-          opacity: [0.2, 1],
-          transform: ["perspective(1200px) rotateY(-88deg)", "perspective(1200px) rotateY(0deg)"],
+          opacity: reveal([0.2, 1]),
+          transform: reveal(["perspective(1200px) rotateY(-88deg)", "perspective(1200px) rotateY(0deg)"]),
           transformOrigin: ["left center", "left center"],
         },
         { ...baseOptions, duration: duration + 120 },
@@ -276,8 +280,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "ink":
       root.animate(
         {
-          clipPath: circle,
-          filter: ["blur(14px) contrast(1.35)", "blur(0px) contrast(1)"],
+          clipPath: reveal(circle),
+          filter: reveal(["blur(14px) contrast(1.35)", "blur(0px) contrast(1)"]),
         },
         { ...baseOptions, duration: duration + 160, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
       );
@@ -285,8 +289,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "pixel":
       root.animate(
         {
-          opacity: [0, 1],
-          filter: ["contrast(1.8)", "contrast(1)"],
+          opacity: reveal([0, 1]),
+          filter: reveal(["contrast(1.8)", "contrast(1)"]),
         },
         { ...baseOptions, easing: "steps(8, end)", duration: duration + 120 },
       );
@@ -294,25 +298,25 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "flash":
       root.animate(
         {
-          clipPath: circle,
-          opacity: [0.35, 1],
-          filter: ["brightness(1.9) saturate(1.35)", "brightness(1) saturate(1)"],
+          clipPath: reveal(circle),
+          opacity: reveal([0.35, 1]),
+          filter: reveal(["brightness(1.9) saturate(1.35)", "brightness(1) saturate(1)"]),
         },
         { ...baseOptions, duration: Math.max(280, duration - 120) },
       );
       break;
     case "curtain":
       root.animate(
-        { clipPath: ["inset(0 50% 0 50%)", "inset(0 0 0 0)"] },
+        { clipPath: reveal(["inset(0 50% 0 50%)", "inset(0 0 0 0)"]) },
         { ...baseOptions, duration: duration + 80 },
       );
       break;
     case "card-flip":
       root.animate(
         {
-          opacity: [0, 1],
-          transform: ["perspective(1000px) translateY(10px) scale(0.96) rotateX(10deg)", "perspective(1000px) translateY(0) scale(1) rotateX(0deg)"],
-          filter: ["blur(8px)", "blur(0px)"],
+          opacity: reveal([0, 1]),
+          transform: reveal(["perspective(1000px) translateY(10px) scale(0.96) rotateX(10deg)", "perspective(1000px) translateY(0) scale(1) rotateX(0deg)"]),
+          filter: reveal(["blur(8px)", "blur(0px)"]),
         },
         baseOptions,
       );
@@ -320,16 +324,16 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
     case "stars":
       root.animate(
         {
-          clipPath: circle,
-          opacity: [0.15, 1],
-          filter: ["brightness(1.45)", "brightness(1)"],
+          clipPath: reveal(circle),
+          opacity: reveal([0.15, 1]),
+          filter: reveal(["brightness(1.45)", "brightness(1)"]),
         },
         { ...baseOptions, duration: duration + 180 },
       );
       break;
     case "circle":
     default:
-      root.animate({ clipPath: circle }, baseOptions);
+      root.animate({ clipPath: reveal(circle) }, baseOptions);
       break;
   }
 }
@@ -351,4 +355,3 @@ function readStoredAnimation(storageKey: string): ThemeAnimation | null {
     return null;
   }
 }
-

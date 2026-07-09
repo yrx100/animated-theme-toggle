@@ -70,8 +70,10 @@ Math.hypot(
 )
 ```
 
-- Use root attributes such as `data-theme-transition="active"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific masks.
-- Prefer animating `::view-transition-new(root)` for all presets so the selected new theme reveals consistently.
+- Use root attributes such as `data-theme-transition="expand|shrink"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific masks.
+- Match the original Drama app direction:
+  - switching to light: animate `::view-transition-new(root)` so the new light theme expands from the click point
+  - switching to dark: animate `::view-transition-old(root)` so the old light theme shrinks back into the click point and reveals dark
 - Set `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)` so the browser's default crossfade does not fight the custom clip-path animation.
 - Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flash before the transition tree is removed.
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.

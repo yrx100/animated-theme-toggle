@@ -55,7 +55,6 @@ If the target browser is below these versions, do not polyfill or recreate the a
   - `diagonal`: diagonal wipe
   - `spotlight`: soft click-origin light sweep
   - `page-flip`: horizontal page turn
-  - `ink`: soft irregular bloom
   - `pixel`: stepped pixel dissolve
   - `curtain`: center-out curtain
   - `stars`: star-shaped reveal
@@ -68,7 +67,7 @@ Math.hypot(
 )
 ```
 
-- Use root attributes such as `data-theme-transition="expand|shrink"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific masks.
+- Use root attributes such as `data-theme-transition="expand|shrink"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific behavior.
 - Match the original Drama app direction:
   - switching to light: animate `::view-transition-new(root)` so the new light theme expands from the click point
   - switching to dark: animate `::view-transition-old(root)` so the old light theme shrinks back into the click point and reveals dark

@@ -7,7 +7,6 @@ export const THEME_ANIMATIONS = [
   "diagonal",
   "spotlight",
   "page-flip",
-  "ink",
   "pixel",
   "curtain",
   "stars",
@@ -275,19 +274,6 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
           transformOrigin: ["left center", "left center"],
         },
         { ...baseOptions, duration: duration + 40 },
-      );
-      break;
-    case "ink":
-      root.animate(
-        {
-          clipPath: reveal([
-            `ellipse(0px 0px at ${x}px ${y}px)`,
-            `ellipse(${radius}px ${radius * 0.82}px at ${x}px ${y}px)`,
-          ]),
-          opacity: reveal([0.62, 1]),
-          filter: reveal(["blur(2px)", "blur(0px)"]),
-        },
-        { ...baseOptions, duration: duration + 90, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
       );
       break;
     case "pixel":

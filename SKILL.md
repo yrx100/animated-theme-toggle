@@ -57,7 +57,7 @@ If the target browser is below these versions, do not polyfill or recreate the a
   - `page-flip`: horizontal page turn
   - `pixel`: stepped pixel dissolve
   - `curtain`: center-out curtain
-  - `stars`: star-shaped reveal
+  - `shatter`: fractured glass shard reveal
 - Compute the reveal radius for coordinate-based presets with:
 
 ```ts

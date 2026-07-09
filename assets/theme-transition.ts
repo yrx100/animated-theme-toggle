@@ -3,13 +3,10 @@ export type ResolvedTheme = "light" | "dark";
 
 export const THEME_ANIMATIONS = [
   "circle",
-  "blinds",
   "diagonal",
   "spotlight",
   "page-flip",
-  "pixel",
   "curtain",
-  "shatter",
 ] as const;
 
 export type ThemeAnimation = (typeof THEME_ANIMATIONS)[number];
@@ -161,6 +158,7 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
     );
 
     const entering = after === "light";
+
     root.setAttribute("data-theme-transition", entering ? "expand" : "shrink");
     root.setAttribute("data-theme-animation", nextAnimation);
 
@@ -238,12 +236,6 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
   const reveal = <T>(frames: T[]): T[] => (entering ? frames : [...frames].reverse());
 
   switch (animation) {
-    case "blinds":
-      root.animate(
-        { clipPath: reveal(["inset(0 0 100% 0)", "inset(0 0 0 0)"]) },
-        { ...baseOptions, easing: "steps(9, end)", duration: duration + 80 },
-      );
-      break;
     case "diagonal":
       root.animate(
         {
@@ -276,43 +268,12 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
         { ...baseOptions, duration: duration + 40 },
       );
       break;
-    case "pixel":
-      root.animate(
-        {
-          clipPath: reveal(circle),
-          opacity: reveal([0.45, 1]),
-        },
-        { ...baseOptions, easing: "steps(10, end)", duration: duration + 20 },
-      );
-      break;
     case "curtain":
       root.animate(
         { clipPath: reveal(["inset(0 50% 0 50%)", "inset(0 0 0 0)"]) },
         { ...baseOptions, duration: duration + 80 },
       );
       break;
-    case "shatter": {
-      const shatter = [
-        `polygon(${x - 6}px 0, ${x + 8}px 0, ${x + 18}px ${y - 42}px, ${x + 5}px ${y - 12}px, ${x + 42}px ${y}px, ${x + 8}px ${y + 10}px, ${x + 18}px 100%, ${x - 8}px 100%, ${x - 16}px ${y + 44}px, ${x - 2}px ${y + 12}px, ${x - 46}px ${y + 8}px, ${x - 8}px ${y - 4}px, ${x - 30}px ${y - 54}px, ${x - 5}px ${y - 14}px, ${x - 6}px 0, ${x - 6}px 0)`,
-        "polygon(-8% 0, 22% 0, 34% 18%, 55% 0, 84% 0, 100% 17%, 85% 38%, 108% 58%, 100% 100%, 72% 100%, 59% 82%, 37% 100%, 0 100%, 15% 69%, -8% 51%, 18% 30%)",
-        "polygon(0 0, 28% 0, 54% 0, 78% 0, 100% 0, 100% 26%, 100% 54%, 100% 76%, 100% 100%, 72% 100%, 48% 100%, 24% 100%, 0 100%, 0 70%, 0 36%, 0 0)",
-      ];
-
-      root.animate(
-        {
-          clipPath: reveal(shatter),
-          opacity: reveal([0.38, 0.9, 1]),
-          filter: reveal([
-            "brightness(1.2) contrast(1.08)",
-            "brightness(1.08) contrast(1.04)",
-            "brightness(1) contrast(1)",
-          ]),
-          transform: reveal(["scale(1.018)", "scale(1.006)", "scale(1)"]),
-        },
-        { ...baseOptions, duration: duration + 100, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
-      );
-      break;
-    }
     case "circle":
     default:
       root.animate({ clipPath: reveal(circle) }, baseOptions);
@@ -332,7 +293,6 @@ function readStoredMode(storageKey: string): ThemeMode | null {
 function readStoredAnimation(storageKey: string): ThemeAnimation | null {
   try {
     const value = window.localStorage.getItem(storageKey);
-    if (value === "stars") return "shatter";
     return isThemeAnimation(value) ? value : null;
   } catch {
     return null;

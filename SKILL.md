@@ -1,6 +1,6 @@
 ---
 name: animated-theme-toggle
-description: Add or retrofit animated light/dark theme switching in frontend projects. Use when a user asks for black/white theme switching, dark mode, light mode, system theme mode, theme persistence, or a circular reveal theme transition powered by the View Transition API, with graceful no-animation fallback for unsupported browsers.
+description: Add, retrofit, or review animated light/dark theme switching in frontend projects. Use when a user asks for black/white theme switching, dark mode, light mode, system theme mode, theme persistence, selectable theme transition presets, implementation details for theme animations, or code review of theme animation compatibility/performance. Provides View Transition API animations with graceful no-animation fallback for unsupported browsers.
 ---
 
 # Animated Theme Toggle
@@ -42,22 +42,21 @@ If the target browser is below these versions, do not polyfill or recreate the a
 7. Verify both paths:
    - supported browser: the selected preset plays
    - unsupported API or reduced motion: theme switches immediately
+8. After generating or modifying animation code, read `references/animation-implementation-review.md` and review the code against its checklist before the final response.
 
 ## Implementation Rules
 
+- Read `references/animation-implementation-review.md` before adding, modifying, or reviewing preset animation code. It contains the preset implementation notes and animation-code review checklist.
 - Keep theme mode separate from resolved theme:
   - mode: `"light" | "dark" | "system"`
   - resolved: `"light" | "dark"`
 - For `system` mode, listen to `(prefers-color-scheme: dark)` changes and reapply only while mode is `"system"`.
 - Support these preset names when the project wants selectable animation styles:
   - `circle`: click-origin circular reveal
-  - `blinds`: vertical segmented blinds
   - `diagonal`: diagonal wipe
   - `spotlight`: soft click-origin light sweep
   - `page-flip`: horizontal page turn
-  - `pixel`: stepped pixel dissolve
   - `curtain`: center-out curtain
-  - `shatter`: fractured glass shard reveal
 - Compute the reveal radius for coordinate-based presets with:
 
 ```ts
@@ -76,10 +75,24 @@ Math.hypot(
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
 - In SSR frameworks, guard all `window` and `document` access behind client-only hooks, components, or dynamic imports.
 
+## Animation Code Review
+
+After generating or modifying animation code, load `references/animation-implementation-review.md` and use its checklist to review the implementation before reporting completion.
+
+When reviewing animation implementation, lead with concrete findings and file/line references. Check:
+
+- Browser floor: animated path only runs on the supported versions listed above; unsupported browsers and reduced-motion users receive the final theme immediately.
+- Cross-browser behavior: verify View Transition pseudo-elements, Web Animations `pseudoElement`, and client-only guards for SSR apps.
+- Cross-system behavior: verify Windows, macOS, iOS Safari, and Android Chrome/Samsung Internet where practical, including OS reduced-motion and system theme changes.
+- Smoothness: avoid default View Transition crossfade conflicts, one-frame flicker, incorrect z-index stacking, stale transition attributes, and direction mismatches.
+- Performance: animate compositable or bounded visual properties, avoid layout work during the animation, remove temporary transition state, and avoid heavy blur/filter/mask effects on large full-screen layers.
+- Accessibility: keep controls keyboard reachable, respect `prefers-reduced-motion`, set `color-scheme`, and prevent transition layers from blocking interaction or assistive technology.
+
 ## Assets
 
 - `assets/theme-transition.ts`: dependency-free TypeScript controller with `THEME_ANIMATIONS`, `getAnimation()`, `setAnimation()`, `setMode(mode, event, animationOverride)`, and `toggle(event, animationOverride)`. Copy it into a frontend project or port the functions into an existing store.
 - `assets/theme-transition.css`: starter semantic tokens plus View Transition pseudo-element stacking rules for multi-preset animations. Merge with the project's design tokens instead of replacing unrelated styling.
+- `references/animation-implementation-review.md`: English implementation notes for every preset plus a review checklist for browser/OS compatibility, smoothness, performance, accessibility, and fallback behavior. Read it after generating or modifying animation code and use it to review the implementation before the final response.
 
 ## Framework Notes
 

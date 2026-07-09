@@ -7,7 +7,7 @@ description: Add or retrofit animated light/dark theme switching in frontend pro
 
 ## Overview
 
-Add a framework-agnostic light/dark theme system with a click-origin circular reveal animation. The pattern uses semantic CSS variables on `document.documentElement`, stores `"light" | "dark" | "system"` mode, resolves system preference with `prefers-color-scheme`, respects `prefers-reduced-motion`, and falls back to an immediate theme switch when View Transitions are unavailable.
+Add a framework-agnostic light/dark theme system with selectable transition presets. The pattern uses semantic CSS variables on `document.documentElement`, stores `"light" | "dark" | "system"` mode, resolves system preference with `prefers-color-scheme`, respects `prefers-reduced-motion`, and falls back to an immediate theme switch when View Transitions are unavailable.
 
 This skill is best for app shells, dashboards, SaaS tools, editors, and any frontend project that wants a polished black/white theme toggle without supporting legacy browsers.
 
@@ -38,9 +38,9 @@ If the target browser is below these versions, do not polyfill or recreate the a
 3. Put semantic color tokens on `:root` and `:root[data-theme="dark"]`. Avoid hard-coded component colors.
 4. Apply the resolved theme by setting `data-theme="light"` or `data-theme="dark"` on `document.documentElement`.
 5. Wrap theme changes in `document.startViewTransition(() => updateTheme())` only when supported and motion is allowed.
-6. Pass the click or pointer event coordinates into the toggle so the circle starts from the control that was clicked.
+6. Pass the click or pointer event coordinates into the toggle so coordinate-based animations start from the control that was clicked.
 7. Verify both paths:
-   - supported browser: circular reveal plays from the click point
+   - supported browser: the selected preset plays
    - unsupported API or reduced motion: theme switches immediately
 
 ## Implementation Rules
@@ -49,7 +49,19 @@ If the target browser is below these versions, do not polyfill or recreate the a
   - mode: `"light" | "dark" | "system"`
   - resolved: `"light" | "dark"`
 - For `system` mode, listen to `(prefers-color-scheme: dark)` changes and reapply only while mode is `"system"`.
-- Compute the reveal radius with:
+- Support these preset names when the project wants selectable animation styles:
+  - `circle`: click-origin circular reveal
+  - `blinds`: vertical segmented blinds
+  - `diagonal`: diagonal wipe
+  - `spotlight`: soft click-origin light sweep
+  - `page-flip`: horizontal page turn
+  - `ink`: soft irregular bloom
+  - `pixel`: stepped pixel dissolve
+  - `flash`: fast radial light flash
+  - `curtain`: center-out curtain
+  - `card-flip`: subtle whole-page card flip
+  - `stars`: multi-point reveal
+- Compute the reveal radius for coordinate-based presets with:
 
 ```ts
 Math.hypot(
@@ -58,10 +70,8 @@ Math.hypot(
 )
 ```
 
-- Use a root attribute such as `data-theme-transition="expand"` or `"shrink"` to control pseudo-element stacking.
-- Direction convention:
-  - switching to light: animate `::view-transition-new(root)` from `circle(0px at x y)` to full radius
-  - switching to dark: animate `::view-transition-old(root)` from full radius to `circle(0px at x y)`
+- Use root attributes such as `data-theme-transition="active"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific masks.
+- Prefer animating `::view-transition-new(root)` for all presets so the selected new theme reveals consistently.
 - Set `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)` so the browser's default crossfade does not fight the custom clip-path animation.
 - Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flash before the transition tree is removed.
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
@@ -69,8 +79,8 @@ Math.hypot(
 
 ## Assets
 
-- `assets/theme-transition.ts`: dependency-free TypeScript controller. Copy it into a frontend project or port the functions into an existing store.
-- `assets/theme-transition.css`: starter semantic tokens and View Transition pseudo-element rules. Merge with the project's design tokens instead of replacing unrelated styling.
+- `assets/theme-transition.ts`: dependency-free TypeScript controller with `THEME_ANIMATIONS`, `getAnimation()`, `setAnimation()`, `setMode(mode, event, animationOverride)`, and `toggle(event, animationOverride)`. Copy it into a frontend project or port the functions into an existing store.
+- `assets/theme-transition.css`: starter semantic tokens plus View Transition pseudo-element rules and masks for multi-preset animations. Merge with the project's design tokens instead of replacing unrelated styling.
 
 ## Framework Notes
 
@@ -78,19 +88,19 @@ React:
 
 - Call `controller.init()` before `createRoot().render(...)` in Vite/CRA style apps, or inside a client-only provider for SSR frameworks.
 - Store the controller in module scope or React context.
-- Use `onClick={(event) => controller.toggle(event)}`.
+- Use `onClick={(event) => controller.toggle(event)}` or `controller.toggle(event, selectedAnimation)`.
 - Re-render icons by subscribing through local state, context, Zustand, Redux, or `useSyncExternalStore`.
 
 Vue:
 
 - Initialize in `main.ts` before `app.mount(...)`.
-- Use `@click="controller.toggle($event)"`.
+- Use `@click="controller.toggle($event)"` or `controller.toggle($event, selectedAnimation)`.
 - Mirror `controller.getResolvedTheme()` into a `ref` when icons need to react.
 
 Svelte/SvelteKit:
 
 - Initialize in `onMount`.
-- Use `on:click={(event) => controller.toggle(event)}`.
+- Use `on:click={(event) => controller.toggle(event)}` or `controller.toggle(event, selectedAnimation)`.
 - Keep current mode/resolved theme in a writable store.
 
 Plain JavaScript:
@@ -98,6 +108,7 @@ Plain JavaScript:
 - Import or paste the controller.
 - Call `const theme = createThemeController(); theme.init();`.
 - Wire buttons with `button.addEventListener("click", (event) => theme.toggle(event));`.
+- Wire animation controls with `theme.setAnimation(animationName)`.
 
 ## Validation
 
@@ -105,9 +116,9 @@ Run the project's normal checks after integration, usually `lint`, `typecheck`, 
 
 Manual checks:
 
-- Toggle from a sidebar/header button and confirm the circle starts at the click point.
+- Toggle from a sidebar/header button and confirm coordinate-based presets start at the click point.
+- Switch through all animation presets and confirm the fallback state still updates immediately.
 - Select explicit light/dark modes and system mode if the project exposes all three.
 - Enable reduced motion at OS/browser level and confirm no animation runs.
 - Temporarily force the fallback branch by checking `delete document.startViewTransition` in DevTools or by testing an unsupported browser.
 - Confirm form controls, scrollbars, and native UI pick up the correct `color-scheme`.
-

@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>原生 DOM · 主题动效校准台</title>
+  <style>
+    /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4
+     * Hallmark · macrostructure: Workbench · tone: calibrated utility · anchor hue: blue
+     */
+    :root,
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --color-paper: oklch(97% 0.008 248);
+      --color-paper-2: oklch(93% 0.014 248);
+      --color-panel: oklch(99% 0.004 248);
+      --color-panel-2: oklch(95% 0.01 248);
+      --color-ink: oklch(19% 0.035 255);
+      --color-ink-2: oklch(38% 0.03 255);
+      --color-muted: oklch(47% 0.024 255);
+      --color-rule: oklch(84% 0.016 248);
+      --color-rule-strong: oklch(72% 0.026 248);
+      --color-accent: oklch(50% 0.18 260);
+      --color-accent-2: oklch(63% 0.17 22);
+      --color-accent-ink: oklch(99% 0.004 248);
+      --color-focus: oklch(55% 0.2 260);
+      --color-success: oklch(50% 0.14 155);
+      --color-error: oklch(55% 0.2 25);
+      --shadow-panel: 0 24px 70px oklch(22% 0.04 255 / 0.12);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --color-paper: oklch(15% 0.022 255);
+      --color-paper-2: oklch(20% 0.028 255);
+      --color-panel: oklch(18% 0.026 255);
+      --color-panel-2: oklch(23% 0.03 255);
+      --color-ink: oklch(94% 0.01 248);
+      --color-ink-2: oklch(78% 0.018 248);
+      --color-muted: oklch(68% 0.022 248);
+      --color-rule: oklch(33% 0.035 255);
+      --color-rule-strong: oklch(45% 0.04 255);
+      --color-accent: oklch(70% 0.13 255);
+      --color-accent-2: oklch(72% 0.15 22);
+      --color-accent-ink: oklch(16% 0.026 255);
+      --color-focus: oklch(76% 0.14 255);
+      --color-success: oklch(70% 0.12 155);
+      --color-error: oklch(72% 0.16 25);
+      --shadow-panel: 0 24px 80px oklch(0% 0 0 / 0.38);
+    }
+
+    :root {
+      --font-display: "Noto Serif SC", "Songti SC", SimSun, serif;
+      --font-body: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --space-2xs: 0.5rem;
+      --space-xs: 0.75rem;
+      --space-sm: 1rem;
+      --space-md: 1.5rem;
+      --space-lg: 2rem;
+      --space-xl: 3rem;
+      --space-2xl: 4.5rem;
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-md: 1rem;
+      --text-lg: 1.25rem;
+      --text-xl: 1.6rem;
+      --text-display: clamp(2.25rem, 10vw, 4.9rem);
+      --radius-panel: 8px;
+      --radius-control: 6px;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+      --dur-short: 180ms;
+      --dur-medium: 260ms;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      overflow-x: clip;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(90deg, oklch(50% 0.02 255 / 0.06) 1px, transparent 1px),
+        linear-gradient(0deg, oklch(50% 0.02 255 / 0.05) 1px, transparent 1px),
+        var(--color-paper);
+      background-size: 44px 44px;
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+
+    button {
+      min-height: 44px;
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-control);
+      color: inherit;
+      font: inherit;
+      white-space: nowrap;
+      cursor: pointer;
+      transition:
+        background-color var(--dur-short) var(--ease-out),
+        border-color var(--dur-short) var(--ease-out),
+        color var(--dur-short) var(--ease-out),
+        transform var(--dur-short) var(--ease-out);
+    }
+
+    button:active,
+    button.is-active {
+      transform: translateY(1px);
+    }
+
+    button:disabled,
+    button[aria-disabled="true"] {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button[data-state="loading"] {
+      cursor: progress;
+    }
+
+    button[data-state="error"] {
+      border-color: var(--color-error);
+    }
+
+    button[data-state="success"] {
+      border-color: var(--color-success);
+    }
+
+    :focus {
+      outline: none;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .lab-shell {
+      width: min(100% - 1rem, 1180px);
+      margin-inline: auto;
+      padding-block: var(--space-sm) var(--space-xl);
+    }
+
+    .topbar {
+      display: grid;
+      gap: var(--space-xs);
+      padding-block: var(--space-xs) var(--space-md);
+      border-bottom: 1px solid var(--color-rule);
+    }
+
+    .brand {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: var(--space-xs);
+      font-weight: 760;
+    }
+
+    .mark {
+      position: relative;
+      display: grid;
+      flex: 0 0 auto;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      border: 1px solid var(--color-rule-strong);
+      border-radius: var(--radius-control);
+      background: var(--color-panel);
+    }
+
+    .mark::before,
+    .mark::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+    }
+
+    .mark::before {
+      width: 1.1rem;
+      height: 1.1rem;
+      background: conic-gradient(
+        from 180deg,
+        var(--color-ink) 0 50%,
+        var(--color-accent) 0
+      );
+    }
+
+    .mark::after {
+      width: 0.18rem;
+      height: 1.45rem;
+      background: var(--color-panel);
+      transform: rotate(34deg);
+    }
+
+    .topbar__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2xs);
+      color: var(--color-muted);
+      font-size: var(--text-sm);
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2rem;
+      padding-inline: var(--space-xs);
+      border: 1px solid var(--color-rule);
+      border-radius: 999px;
+      background: var(--color-panel);
+    }
+
+    .dashboard {
+      display: grid;
+      gap: var(--space-sm);
+      padding-top: var(--space-md);
+    }
+
+    .intro-panel,
+    .control-panel,
+    .animation-board {
+      min-width: 0;
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-panel);
+      background: color-mix(in oklab, var(--color-panel), transparent 3%);
+      box-shadow: var(--shadow-panel);
+    }
+
+    .intro-panel,
+    .control-panel {
+      padding: var(--space-md);
+    }
+
+    .intro-panel {
+      display: grid;
+      align-content: space-between;
+      gap: var(--space-lg);
+      min-height: 18rem;
+      background:
+        linear-gradient(135deg, transparent 0 58%, oklch(50% 0.18 260 / 0.12) 58% 59%, transparent 59%),
+        var(--color-panel);
+    }
+
+    .eyebrow,
+    .panel-kicker,
+    .stat span,
+    .anim span,
+    .board-current {
+      color: var(--color-muted);
+      font-size: var(--text-xs);
+    }
+
+    .eyebrow,
+    .panel-kicker {
+      margin: 0;
+      font-family: var(--font-mono);
+      letter-spacing: 0;
+    }
+
+    .title {
+      max-width: min(8ch, 100%);
+      min-width: 0;
+      margin: var(--space-xs) 0 0;
+      font-family: var(--font-display);
+      font-size: var(--text-display);
+      font-style: normal;
+      font-weight: 700;
+      line-height: 0.98;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .lead {
+      max-width: min(44rem, 100%);
+      min-width: 0;
+      margin: 0;
+      color: var(--color-ink-2);
+      font-size: var(--text-md);
+      overflow-wrap: anywhere;
+    }
+
+    .control-panel {
+      display: grid;
+      gap: var(--space-sm);
+      align-content: start;
+    }
+
+    .panel-head {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .panel-head h2,
+    .board-title h2 {
+      margin: 0;
+      font-size: var(--text-xl);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    .mode-row {
+      display: grid;
+      gap: var(--space-2xs);
+    }
+
+    .mode,
+    .toggle,
+    .anim {
+      background: var(--color-panel);
+    }
+
+    .mode {
+      padding-inline: var(--space-sm);
+      text-align: center;
+    }
+
+    .mode.is-active {
+      border-color: var(--color-accent);
+      background: color-mix(in oklab, var(--color-accent), var(--color-panel) 88%);
+      color: var(--color-ink);
+    }
+
+    .toggle {
+      width: 100%;
+      min-height: 3.25rem;
+      border-color: transparent;
+      background: var(--color-ink);
+      color: var(--color-paper);
+      font-weight: 760;
+    }
+
+    .status-grid {
+      display: grid;
+      gap: var(--space-2xs);
+      border-top: 1px solid var(--color-rule);
+      padding-top: var(--space-sm);
+    }
+
+    .stat {
+      display: grid;
+      grid-template-columns: minmax(5.8rem, 0.52fr) minmax(0, 1fr);
+      gap: var(--space-xs);
+      align-items: baseline;
+      min-height: 2.5rem;
+      border-bottom: 1px solid var(--color-rule);
+    }
+
+    .stat strong {
+      min-width: 0;
+      font-size: var(--text-sm);
+      overflow-wrap: anywhere;
+    }
+
+    .animation-board {
+      display: grid;
+      gap: var(--space-sm);
+      align-content: start;
+      padding: var(--space-sm);
+    }
+
+    .board-title {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .board-title p {
+      margin: 0;
+      color: var(--color-muted);
+      font-size: var(--text-sm);
+    }
+
+    .board-current {
+      flex: 0 0 auto;
+      max-width: 8rem;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--color-rule);
+      border-radius: 999px;
+      background: var(--color-panel);
+      font-family: var(--font-mono);
+      text-align: center;
+    }
+
+    .anim-grid {
+      display: grid;
+      gap: var(--space-2xs);
+    }
+
+    .anim {
+      display: grid;
+      gap: 0.35rem;
+      min-height: 5rem;
+      padding: var(--space-sm);
+      text-align: left;
+    }
+
+    .anim strong {
+      min-width: 0;
+      font-size: var(--text-md);
+      overflow-wrap: anywhere;
+    }
+
+    .anim span {
+      line-height: 1.35;
+      white-space: normal;
+    }
+
+    .anim.active {
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: var(--color-accent-ink);
+    }
+
+    .anim.active span {
+      color: color-mix(in oklab, var(--color-accent-ink), transparent 25%);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .mode:hover,
+      .anim:hover {
+        border-color: var(--color-accent);
+        background: color-mix(in oklab, var(--color-accent), var(--color-panel) 90%);
+        transform: translateY(-1px);
+      }
+
+      .toggle:hover {
+        background: var(--color-accent);
+        color: var(--color-accent-ink);
+        transform: translateY(-1px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 120ms !important;
+        animation-duration: 120ms !important;
+      }
+    }
+
+    @media (min-width: 40rem) {
+      .lab-shell {
+        width: min(100% - 2rem, 1180px);
+        padding-block: var(--space-md) var(--space-2xl);
+      }
+
+      .topbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+      }
+
+      .mode-row,
+      .status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .anim-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 60rem) {
+      .dashboard {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        align-items: start;
+      }
+
+      .intro-panel {
+        grid-column: 1 / -1;
+      }
+
+      .intro-panel {
+        grid-template-columns: minmax(0, 0.74fr) minmax(18rem, 0.26fr);
+        min-height: 16rem;
+      }
+
+      .lead {
+        align-self: end;
+      }
+
+      .mode-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .anim-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 90rem) {
+      .lab-shell {
+        width: min(100% - 4rem, 1320px);
+      }
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    html[data-theme-transition="expand"]::view-transition-old(root) {
+      z-index: 1;
+    }
+
+    html[data-theme-transition="expand"]::view-transition-new(root) {
+      z-index: 2;
+    }
+
+    html[data-theme-transition="shrink"]::view-transition-old(root) {
+      z-index: 2;
+    }
+
+    html[data-theme-transition="shrink"]::view-transition-new(root) {
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <main class="lab-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span>主题动效校准台</span>
+      </div>
+      <div class="topbar__meta" aria-label="演示环境">
+        <span class="meta-pill">原生 DOM</span>
+        <span class="meta-pill">View Transition</span>
+      </div>
+    </header>
+
+    <section class="dashboard" aria-labelledby="page-title">
+      <section class="intro-panel">
+        <div>
+          <p class="eyebrow">theme transition workbench</p>
+          <h1 id="page-title" class="title">黑白主题切换校准</h1>
+        </div>
+        <p class="lead">用同一个控制台检查保留的过渡：浅色进入时从点击点扩散，深色进入时旧画面回收。</p>
+      </section>
+
+      <section class="control-panel" aria-label="主题控制">
+        <div class="panel-head">
+          <p class="panel-kicker">controls</p>
+          <h2>主题状态</h2>
+        </div>
+
+        <div class="mode-row" aria-label="主题模式">
+          <button class="mode" data-mode="light" type="button">浅色</button>
+          <button class="mode" data-mode="dark" type="button">深色</button>
+          <button class="mode" data-mode="system" type="button">跟随系统</button>
+        </div>
+
+        <button id="toggle" class="toggle" type="button">切换黑白</button>
+
+        <div class="status-grid" aria-live="polite">
+          <div class="stat"><span>当前模式</span><strong id="modeText">浅色</strong></div>
+          <div class="stat"><span>解析主题</span><strong id="resolvedText">浅色</strong></div>
+          <div class="stat"><span>动效方向</span><strong id="directionText">待触发</strong></div>
+          <div class="stat"><span>浏览器路径</span><strong id="pathText">检测中</strong></div>
+        </div>
+      </section>
+
+      <section class="animation-board" aria-label="动效选择">
+        <div class="board-title">
+          <div>
+            <p class="panel-kicker">presets</p>
+            <h2>过渡预设</h2>
+            <p>选择后点击“切换黑白”验证方向和节奏。</p>
+          </div>
+          <p class="board-current" id="animationText">圆形扩散</p>
+        </div>
+        <div id="animationGrid" class="anim-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const ANIMATIONS = [
+      ["circle", "圆形扩散", "点击处扩散或收束"],
+      ["diagonal", "对角擦除", "斜向扫过屏幕"],
+      ["spotlight", "聚光灯", "柔光从点击处铺开"],
+      ["page-flip", "水平翻页", "轻量横向翻页"],
+      ["curtain", "中线幕布", "由中线打开或合拢"],
+    ];
+
+    const modeLabels = { light: "浅色", dark: "深色", system: "跟随系统" };
+    const themeLabels = { light: "浅色", dark: "深色" };
+
+    function createThemeDemo(storageKey) {
+      const root = document.documentElement;
+      const media = matchMedia("(prefers-color-scheme: dark)");
+      const listeners = new Set();
+      const values = ANIMATIONS.map((animation) => animation[0]);
+      let mode = localStorage.getItem(storageKey) || "light";
+      let animation = localStorage.getItem(`${storageKey}.animation`) || "circle";
+      let direction = "待触发";
+
+      if (!["light", "dark", "system"].includes(mode)) mode = "light";
+      if (!values.includes(animation)) {
+        animation = "circle";
+        localStorage.setItem(`${storageKey}.animation`, animation);
+      }
+
+      const resolve = (nextMode = mode) => nextMode === "system"
+        ? (media.matches ? "dark" : "light")
+        : nextMode;
+
+      const state = () => ({
+        mode,
+        resolved: resolve(),
+        animation,
+        direction,
+        supported: typeof document.startViewTransition === "function",
+        reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      });
+
+      const emit = () => listeners.forEach((fn) => fn(state()));
+
+      function apply() {
+        const resolved = resolve();
+        root.dataset.theme = resolved;
+        root.style.colorScheme = resolved;
+        emit();
+      }
+
+      function setAnimation(nextAnimation) {
+        animation = nextAnimation;
+        localStorage.setItem(`${storageKey}.animation`, nextAnimation);
+        emit();
+      }
+
+      function update(nextMode) {
+        mode = nextMode;
+        localStorage.setItem(storageKey, nextMode);
+        apply();
+      }
+
+      function play(nextMode, event, preset = animation) {
+        const before = resolve();
+        const after = resolve(nextMode);
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const entering = after === "light";
+
+        direction = entering ? "切浅色：新画面扩散" : "切深色：旧画面收束";
+
+        if (before === after || reduced || typeof document.startViewTransition !== "function") {
+          update(nextMode);
+          return;
+        }
+
+        const x = event?.clientX ?? innerWidth / 2;
+        const y = event?.clientY ?? innerHeight / 2;
+        const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+        root.dataset.themeTransition = entering ? "expand" : "shrink";
+        root.dataset.themeAnimation = preset;
+
+        const transition = document.startViewTransition(() => update(nextMode));
+        transition.ready.then(() => animate(root, {
+          preset,
+          x,
+          y,
+          radius,
+          entering,
+          pseudo: entering ? "::view-transition-new(root)" : "::view-transition-old(root)",
+        }));
+        transition.finished.finally(() => {
+          delete root.dataset.themeTransition;
+          delete root.dataset.themeAnimation;
+        });
+      }
+
+      media.addEventListener("change", () => {
+        if (mode === "system") apply();
+      });
+
+      return {
+        init: apply,
+        setMode: play,
+        toggle: (event) => play(resolve() === "dark" ? "light" : "dark", event),
+        setAnimation,
+        subscribe(fn) {
+          listeners.add(fn);
+          fn(state());
+          return () => listeners.delete(fn);
+        },
+      };
+    }
+
+    function animate(root, { preset, x, y, radius, entering, pseudo }) {
+      const baseOptions = {
+        duration: 520,
+        easing: "cubic-bezier(0.4,0,0.2,1)",
+        fill: "forwards",
+        pseudoElement: pseudo,
+      };
+      const circle = [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`];
+      const reveal = (frames) => entering ? frames : [...frames].reverse();
+      const run = (keyframes, options = {}) => root.animate(keyframes, { ...baseOptions, ...options });
+
+      ({
+        circle: () => run({ clipPath: reveal(circle) }),
+        diagonal: () => run({
+          clipPath: reveal([
+            "polygon(-35% 0,-15% 0,-35% 100%,-55% 100%)",
+            "polygon(-20% 0,140% 0,120% 100%,-40% 100%)",
+          ]),
+        }),
+        spotlight: () => run(
+          { clipPath: reveal(circle), opacity: reveal([0.72, 1]), filter: reveal(["brightness(1.18)", "brightness(1)"]) },
+          { duration: 560 },
+        ),
+        "page-flip": () => run(
+          {
+            clipPath: reveal(["inset(0 100% 0 0)", "inset(0)"]),
+            opacity: reveal([0.65, 1]),
+            transform: reveal(["translateX(-28px) skewX(-4deg)", "translateX(0) skewX(0deg)"]),
+            transformOrigin: ["left center", "left center"],
+          },
+          { duration: 560 },
+        ),
+        curtain: () => run(
+          { clipPath: reveal(["inset(0 50% 0 50%)", "inset(0)"]) },
+          { duration: 600 },
+        ),
+      }[preset] || (() => run({ clipPath: reveal(circle) })))();
+    }
+
+    const theme = createThemeDemo("theme-demo-native");
+    const grid = document.getElementById("animationGrid");
+
+    ANIMATIONS.forEach(([value, label, note]) => {
+      const button = document.createElement("button");
+      button.className = "anim";
+      button.type = "button";
+      button.dataset.animation = value;
+      button.innerHTML = `<strong>${label}</strong><span>${note}</span>`;
+      button.addEventListener("click", () => theme.setAnimation(value));
+      grid.append(button);
+    });
+
+    theme.subscribe((state) => {
+      document.getElementById("modeText").textContent = modeLabels[state.mode];
+      document.getElementById("resolvedText").textContent = themeLabels[state.resolved];
+      document.getElementById("directionText").textContent = state.direction;
+      document.getElementById("pathText").textContent = state.supported && !state.reduced ? "原生动效" : "即时切换";
+
+      const current = ANIMATIONS.find((animation) => animation[0] === state.animation);
+      document.getElementById("animationText").textContent = current?.[1] || state.animation;
+
+      document.querySelectorAll("[data-animation]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.animation === state.animation);
+      });
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.mode === state.mode);
+      });
+    });
+
+    theme.init();
+    document.getElementById("toggle").addEventListener("click", (event) => theme.toggle(event));
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", (event) => theme.setMode(button.dataset.mode, event));
+    });
+  </script>
+</body>
+</html>

@@ -27,6 +27,7 @@ Math.hypot(
 - When switching to dark, animate `::view-transition-old(root)` so the old light theme shrinks back toward the click point and reveals dark.
 - Disable the browser's default View Transition crossfade by setting `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)`.
 - Use `fill: "forwards"` so the transition does not flicker for one frame before the transition tree is removed.
+- Retain the returned `Animation` and cancel it after `transition.finished`. A forwards-filled animation left attached to the root can reapply its final clip path when the browser creates the same View Transition pseudo-element on the next toggle.
 - In SSR projects, guard `window`, `document`, `matchMedia`, and `localStorage` access behind client-only lifecycle hooks, client components, or dynamic imports.
 
 ## Preset Implementation Notes
@@ -83,6 +84,7 @@ Smoothness:
 - Is the browser's default View Transition crossfade disabled so it does not fight the custom `clip-path` animation?
 - Are `::view-transition-old(root)` and `::view-transition-new(root)` stacked correctly for the current direction?
 - Do animations use `fill: "forwards"` so the ending frame does not flash before cleanup?
+- Is each forwards-filled pseudo-element animation cancelled after `transition.finished` so its final clip path cannot leak into the next transition?
 - Do coordinate-based animations start from the click point, with a reasonable viewport-center fallback?
 - Is direction correct for each preset: light-to-dark should reveal dark by contracting the old light surface, and dark-to-light should reveal the new light surface.
 - Do rapid repeated toggles, viewport resizing, and system theme changes avoid stale attributes and state mismatches?

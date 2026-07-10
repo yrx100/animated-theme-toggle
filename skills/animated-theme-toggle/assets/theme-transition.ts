@@ -167,8 +167,10 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
       apply();
     });
 
+    let transitionAnimation: Animation | undefined;
+
     void transition.ready.then(() => {
-      animateThemeTransition(root, {
+      transitionAnimation = animateThemeTransition(root, {
         animation: nextAnimation,
         entering,
         x,
@@ -180,10 +182,16 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
       });
     });
 
-    void transition.finished.finally(() => {
+    const cleanup = (): void => {
+      // `fill: "forwards"` keeps the final frame stable until the View
+      // Transition tree disappears. Cancel it afterwards so its clip-path
+      // cannot affect the same pseudo-element in the next transition.
+      transitionAnimation?.cancel();
       root.removeAttribute("data-theme-transition");
       root.removeAttribute("data-theme-animation");
-    });
+    };
+
+    void transition.finished.then(cleanup, cleanup);
   }
 
   const controller: ThemeController = {
@@ -223,7 +231,7 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
   return controller;
 }
 
-function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContext): void {
+function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContext): Animation {
   const { animation, entering, x, y, radius, duration, easing, pseudoElement } = context;
   const baseOptions: PseudoElementAnimationOptions = {
     duration,
@@ -237,7 +245,7 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
 
   switch (animation) {
     case "diagonal":
-      root.animate(
+      return root.animate(
         {
           clipPath: reveal([
             "polygon(-35% 0, -15% 0, -35% 100%, -55% 100%)",
@@ -246,9 +254,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
         },
         baseOptions,
       );
-      break;
     case "spotlight":
-      root.animate(
+      return root.animate(
         {
           clipPath: reveal(circle),
           opacity: reveal([0.72, 1]),
@@ -256,9 +263,8 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
         },
         { ...baseOptions, duration: duration + 40 },
       );
-      break;
     case "page-flip":
-      root.animate(
+      return root.animate(
         {
           clipPath: reveal(["inset(0 100% 0 0)", "inset(0 0 0 0)"]),
           opacity: reveal([0.65, 1]),
@@ -267,17 +273,14 @@ function animateThemeTransition(root: HTMLElement, context: ThemeAnimationContex
         },
         { ...baseOptions, duration: duration + 40 },
       );
-      break;
     case "curtain":
-      root.animate(
+      return root.animate(
         { clipPath: reveal(["inset(0 50% 0 50%)", "inset(0 0 0 0)"]) },
         { ...baseOptions, duration: duration + 80 },
       );
-      break;
     case "circle":
     default:
-      root.animate({ clipPath: reveal(circle) }, baseOptions);
-      break;
+      return root.animate({ clipPath: reveal(circle) }, baseOptions);
   }
 }
 

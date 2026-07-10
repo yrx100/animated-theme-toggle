@@ -72,6 +72,7 @@ Math.hypot(
   - switching to dark: animate `::view-transition-old(root)` so the old light theme shrinks back into the click point and reveals dark
 - Set `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)` so the browser's default crossfade does not fight the custom clip-path animation.
 - Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flicker before the transition tree is removed.
+- Keep the returned `Animation` and call `cancel()` after `transition.finished`. Without cleanup, a forwards-filled clip path can remain attached to the root and hide the recycled View Transition pseudo-element on the next theme change.
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
 - In SSR frameworks, guard all `window` and `document` access behind client-only hooks, components, or dynamic imports.
 

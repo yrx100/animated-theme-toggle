@@ -667,18 +667,26 @@
         root.dataset.themeAnimation = preset;
 
         const transition = document.startViewTransition(() => update(nextMode));
-        transition.ready.then(() => animate(root, {
-          preset,
-          x,
-          y,
-          radius,
-          entering,
-          pseudo: entering ? "::view-transition-new(root)" : "::view-transition-old(root)",
-        }));
-        transition.finished.finally(() => {
+        let transitionAnimation;
+
+        transition.ready.then(() => {
+          transitionAnimation = animate(root, {
+            preset,
+            x,
+            y,
+            radius,
+            entering,
+            pseudo: entering ? "::view-transition-new(root)" : "::view-transition-old(root)",
+          });
+        });
+
+        const cleanup = () => {
+          transitionAnimation?.cancel();
           delete root.dataset.themeTransition;
           delete root.dataset.themeAnimation;
-        });
+        };
+
+        transition.finished.then(cleanup, cleanup);
       }
 
       media.addEventListener("change", () => {
@@ -709,7 +717,7 @@
       const reveal = (frames) => entering ? frames : [...frames].reverse();
       const run = (keyframes, options = {}) => root.animate(keyframes, { ...baseOptions, ...options });
 
-      ({
+      return ({
         circle: () => run({ clipPath: reveal(circle) }),
         diagonal: () => run({
           clipPath: reveal([

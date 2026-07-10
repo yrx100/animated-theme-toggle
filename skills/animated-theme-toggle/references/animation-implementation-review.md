@@ -111,3 +111,4 @@ Validation:
 - In DevTools, temporarily remove or override `document.startViewTransition` and confirm the fallback updates the theme without errors.
 - Enable reduced motion at the OS or browser level and confirm all spatial animations stop.
 - Toggle rapidly at least 20 times and confirm there are no leftover overlays, listener leaks, theme state mismatches, or obvious memory growth.
+- Run `light -> dark`, wait for the animation to finish, and then switch back to light. Confirm the second transition's `::view-transition-old(root)` has no stale `clip-path`, the dark snapshot remains visible outside the reveal, and the page never becomes a blank light canvas.

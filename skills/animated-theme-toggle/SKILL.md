@@ -76,6 +76,33 @@ Math.hypot(
 - Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
 - In SSR frameworks, guard all `window` and `document` access behind client-only hooks, components, or dynamic imports.
 
+### Mandatory Animation Cleanup Invariant
+
+Every animation created with `root.animate(..., { pseudoElement, fill: "forwards" })` MUST satisfy all of these conditions:
+
+1. Return and retain the `Animation` instance.
+2. Cancel that instance after `transition.finished`, on both fulfillment and rejection.
+3. Remove temporary transition direction and preset attributes in the same cleanup path.
+4. Never rely on removal of the browser's temporary View Transition tree to discard the Web Animation. A forwards-filled effect remains attached to its source element and can apply its final `clip-path` when the same pseudo-element is created during the next toggle.
+
+The required shape is:
+
+```ts
+let transitionAnimation: Animation | undefined;
+
+void transition.ready.then(() => {
+  transitionAnimation = root.animate(keyframes, options);
+});
+
+const cleanup = () => {
+  transitionAnimation?.cancel();
+  root.removeAttribute("data-theme-transition");
+  root.removeAttribute("data-theme-animation");
+};
+
+void transition.finished.then(cleanup, cleanup);
+```
+
 ## Animation Code Review
 
 After generating or modifying animation code, load `references/animation-implementation-review.md` and use its checklist to review the implementation before reporting completion.
@@ -135,3 +162,4 @@ Manual checks:
 - Enable reduced motion at OS/browser level and confirm no animation runs.
 - Temporarily force the fallback branch by checking `delete document.startViewTransition` in DevTools or by testing an unsupported browser.
 - Confirm form controls, scrollbars, and native UI pick up the correct `color-scheme`.
+- Run the exact sequential regression `light -> dark -> wait for completion -> light`. During the second transition, `::view-transition-old(root)` must have `clip-path: none`, the old dark page must remain visible outside the expanding light reveal, and no blank light canvas may appear.

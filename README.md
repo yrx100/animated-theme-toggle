@@ -12,19 +12,19 @@ directory under `skills/` and includes a `SKILL.md` file.
 List the skills available in this repository:
 
 ```bash
-npx skills add https://github.com/yrx100/animated-theme-toggle --list
+npx skills add https://github.com/yrx100/agentSkills --list
 ```
 
 Install one skill by name:
 
 ```bash
-npx skills add https://github.com/yrx100/animated-theme-toggle --skill animated-theme-toggle
+npx skills add https://github.com/yrx100/agentSkills --skill animated-theme-toggle
 ```
 
 Install globally for Codex without interactive prompts:
 
 ```bash
-npx skills add https://github.com/yrx100/animated-theme-toggle --skill animated-theme-toggle --agent codex --global --yes
+npx skills add https://github.com/yrx100/agentSkills --skill animated-theme-toggle --agent codex --global --yes
 ```
 
 ## Add another skill

@@ -1,0 +1,4 @@
+interface:
+  display_name: "项目重构与商业净室重建"
+  short_description: "项目审计、独立重建、商业发布闸门与自主验证交付流程"
+  default_prompt: "使用 $project-refactor 分析当前项目；如需独立重建并面向商用，请启用“商业净室重建”模式，在实施前完成权利预检。"

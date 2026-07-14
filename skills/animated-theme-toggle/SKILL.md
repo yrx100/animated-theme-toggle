@@ -1,21 +1,21 @@
 ---
 name: animated-theme-toggle
-description: Add, retrofit, or review animated light/dark theme switching in frontend projects. Use when a user asks for black/white theme switching, dark mode, light mode, system theme mode, theme persistence, selectable theme transition presets, implementation details for theme animations, or code review of theme animation compatibility/performance. Provides View Transition API animations with graceful no-animation fallback for unsupported browsers.
+description: 为前端项目添加、改造或评审带动画的明暗主题切换。适用于黑白主题、深色模式、浅色模式、系统主题、主题持久化、可选过渡预设、主题动画实现与兼容性/性能评审。通过 View Transition API 提供动画，并为不支持的浏览器直接降级。
 ---
 
-# Animated Theme Toggle
+# 带动画的主题切换
 
-## Overview
+## 概述
 
-Add a framework-agnostic light/dark theme system with selectable transition presets. The pattern uses semantic CSS variables on `document.documentElement`, stores `"light" | "dark" | "system"` mode, resolves system preference with `prefers-color-scheme`, respects `prefers-reduced-motion`, and falls back to an immediate theme switch when View Transitions are unavailable.
+实现框架无关的浅色/深色主题系统，并提供可选过渡预设。该模式在 `document.documentElement` 上使用语义化 CSS 变量，保存 `"light" | "dark" | "system"` 模式，依据 `prefers-color-scheme` 解析系统偏好，遵循 `prefers-reduced-motion`，在不支持 View Transitions 时立即切换主题。
 
-This skill is best for app shells, dashboards, SaaS tools, editors, and any frontend project that wants a polished black/white theme toggle without supporting legacy browsers.
+该技能适合应用壳、仪表盘、SaaS、编辑器，以及希望获得精致黑白主题切换、但无需兼容旧浏览器动画的前端项目。
 
-## Browser Floor
+## 浏览器下限
 
-Animated switching requires same-document View Transition support through `document.startViewTransition` and `::view-transition-old/new(root)`.
+动画切换要求支持同文档 View Transition，即 `document.startViewTransition` 与 `::view-transition-old/new(root)`。
 
-Minimum browser versions for the animated path, verified 2026-07-09:
+动画路径的最低浏览器版本（验证日期：2026-07-09）：
 
 - Chrome 111+
 - Edge 111+
@@ -25,39 +25,39 @@ Minimum browser versions for the animated path, verified 2026-07-09:
 - Opera 97+
 - Samsung Internet 22+
 
-If the target browser is below these versions, do not polyfill or recreate the animation. Keep the normal theme update so the UI still changes instantly. See `references/browser-support.md` when the user asks for compatibility details or a source-backed browser list.
+低于以上版本时，不要通过 polyfill 或其他方式复刻动画；仍应正常更新主题，让界面立即完成切换。需要兼容性细节或带来源的浏览器列表时，参阅 `references/browser-support.md`。
 
-## Workflow
+## 工作流程
 
-1. Inspect the target project and locate:
-   - app bootstrap or client-only entry point
-   - global CSS or design token file
-   - theme/settings store, if one already exists
-   - existing theme toggle UI
-2. Prefer the project's existing state/persistence pattern. Use `assets/theme-transition.ts` only when the project lacks a suitable helper.
-3. Put semantic color tokens on `:root` and `:root[data-theme="dark"]`. Avoid hard-coded component colors.
-4. Apply the resolved theme by setting `data-theme="light"` or `data-theme="dark"` on `document.documentElement`.
-5. Wrap theme changes in `document.startViewTransition(() => updateTheme())` only when supported and motion is allowed.
-6. Pass the click or pointer event coordinates into the toggle so coordinate-based animations start from the control that was clicked.
-7. Verify both paths:
-   - supported browser: the selected preset plays
-   - unsupported API or reduced motion: theme switches immediately
-8. After generating or modifying animation code, read `references/animation-implementation-review.md` and review the code against its checklist before the final response.
+1. 检查目标项目并定位：
+   - 应用启动代码或仅客户端入口；
+   - 全局 CSS 或设计令牌文件；
+   - 现有主题/设置状态管理；
+   - 已有主题切换控件。
+2. 优先沿用项目既有的状态与持久化方式。仅当项目缺少合适助手时，才使用 `assets/theme-transition.ts`。
+3. 在 `:root` 与 `:root[data-theme="dark"]` 定义语义化颜色令牌，避免在组件中硬编码颜色。
+4. 通过在 `document.documentElement` 上设置 `data-theme="light"` 或 `data-theme="dark"` 应用已解析主题。
+5. 仅在浏览器支持且允许动画时，用 `document.startViewTransition(() => updateTheme())` 包裹主题变更。
+6. 向切换控件传入点击或指针坐标，使坐标类动画从被点击的控件位置开始。
+7. 验证两条路径：
+   - 支持的浏览器：所选预设正常播放；
+   - 不支持 API 或启用减少动态效果：主题立即切换。
+8. 生成或修改动画代码后，阅读 `references/animation-implementation-review.md`，并按其中清单审查代码。
 
-## Implementation Rules
+## 实现规则
 
-- Read `references/animation-implementation-review.md` before adding, modifying, or reviewing preset animation code. It contains the preset implementation notes and animation-code review checklist.
-- Keep theme mode separate from resolved theme:
-  - mode: `"light" | "dark" | "system"`
-  - resolved: `"light" | "dark"`
-- For `system` mode, listen to `(prefers-color-scheme: dark)` changes and reapply only while mode is `"system"`.
-- Support these preset names when the project wants selectable animation styles:
-  - `circle`: click-origin circular reveal
-  - `diagonal`: diagonal wipe
-  - `spotlight`: soft click-origin light sweep
-  - `page-flip`: horizontal page turn
-  - `curtain`: center-out curtain
-- Compute the reveal radius for coordinate-based presets with:
+- 添加、修改或评审预设动画代码前，必须阅读 `references/animation-implementation-review.md`；其中包含各预设的实现说明和动画代码审查清单。
+- 主题模式与已解析主题应分离：
+  - 模式：`"light" | "dark" | "system"`
+  - 已解析主题：`"light" | "dark"`
+- 使用 `system` 模式时，监听 `(prefers-color-scheme: dark)` 变化，并且只在模式为 `"system"` 时重新应用。
+- 如项目需要可选动画风格，支持以下预设名称：
+  - `circle`：从点击点开始的圆形揭示；
+  - `diagonal`：对角擦除；
+  - `spotlight`：从点击点开始的柔和光扫；
+  - `page-flip`：水平翻页；
+  - `curtain`：从中间向两侧展开的幕布。
+- 坐标类预设应使用下列方式计算揭示半径：
 
 ```ts
 Math.hypot(
@@ -66,26 +66,26 @@ Math.hypot(
 )
 ```
 
-- Use root attributes such as `data-theme-transition="expand|shrink"` and `data-theme-animation="<preset>"` to control pseudo-element stacking and preset-specific behavior.
-- Match the original Drama app direction:
-  - switching to light: animate `::view-transition-new(root)` so the new light theme expands from the click point
-  - switching to dark: animate `::view-transition-old(root)` so the old light theme shrinks back into the click point and reveals dark
-- Set `animation: none` and `mix-blend-mode: normal` on `::view-transition-old(root)` and `::view-transition-new(root)` so the browser's default crossfade does not fight the custom clip-path animation.
-- Use `fill: "forwards"` on the clip-path animation to avoid a one-frame flicker before the transition tree is removed.
-- Keep the returned `Animation` and call `cancel()` after `transition.finished`. Without cleanup, a forwards-filled clip path can remain attached to the root and hide the recycled View Transition pseudo-element on the next theme change.
-- Do not add fallback animation for unsupported browsers unless the user explicitly asks. The intended fallback is a direct state update.
-- In SSR frameworks, guard all `window` and `document` access behind client-only hooks, components, or dynamic imports.
+- 使用 `data-theme-transition="expand|shrink"` 和 `data-theme-animation="<preset>"` 等根属性，控制伪元素层级与预设行为。
+- 保持原 Drama 应用的方向：
+  - 切至浅色：动画作用于 `::view-transition-new(root)`，让新的浅色主题从点击点扩散；
+  - 切至深色：动画作用于 `::view-transition-old(root)`，让旧的浅色主题向点击点收束并露出深色主题。
+- 在 `::view-transition-old(root)` 与 `::view-transition-new(root)` 上设置 `animation: none` 和 `mix-blend-mode: normal`，避免浏览器默认交叉淡入淡出干扰自定义 `clip-path` 动画。
+- 使用 `fill: "forwards"`，避免过渡树移除前出现一帧闪烁。
+- 保存返回的 `Animation`，并在 `transition.finished` 后调用 `cancel()`。不清理时，带 `forwards` 的 `clip-path` 会附着在根元素上，并在下一次主题切换复用 View Transition 伪元素时将其隐藏。
+- 除非用户明确要求，否则不要为不支持的浏览器添加备用动画；预期降级方式是直接更新状态。
+- 在 SSR 框架中，必须把所有 `window` 和 `document` 访问置于仅客户端的钩子、组件或动态导入之后。
 
-### Mandatory Animation Cleanup Invariant
+### 强制动画清理约束
 
-Every animation created with `root.animate(..., { pseudoElement, fill: "forwards" })` MUST satisfy all of these conditions:
+每个通过 `root.animate(..., { pseudoElement, fill: "forwards" })` 创建的动画都必须满足：
 
-1. Return and retain the `Animation` instance.
-2. Cancel that instance after `transition.finished`, on both fulfillment and rejection.
-3. Remove temporary transition direction and preset attributes in the same cleanup path.
-4. Never rely on removal of the browser's temporary View Transition tree to discard the Web Animation. A forwards-filled effect remains attached to its source element and can apply its final `clip-path` when the same pseudo-element is created during the next toggle.
+1. 返回并保留 `Animation` 实例。
+2. 在 `transition.finished` 成功或失败后均取消该实例。
+3. 在同一清理路径中移除临时的过渡方向和预设属性。
+4. 不要依赖浏览器临时 View Transition 树的移除来销毁 Web Animation。带 `forwards` 的效果仍会附着在源元素上，并在下次创建相同伪元素时应用最终 `clip-path`。
 
-The required shape is:
+所需形态：
 
 ```ts
 let transitionAnimation: Animation | undefined;
@@ -103,63 +103,63 @@ const cleanup = () => {
 void transition.finished.then(cleanup, cleanup);
 ```
 
-## Animation Code Review
+## 动画代码审查
 
-After generating or modifying animation code, load `references/animation-implementation-review.md` and use its checklist to review the implementation before reporting completion.
+生成或修改动画代码后，加载 `references/animation-implementation-review.md` 并根据其清单审查实现。
 
-When reviewing animation implementation, lead with concrete findings and file/line references. Check:
+审查动画实现时，应先给出具体发现及文件/行号，检查以下方面：
 
-- Browser floor: animated path only runs on the supported versions listed above; unsupported browsers and reduced-motion users receive the final theme immediately.
-- Cross-browser behavior: verify View Transition pseudo-elements, Web Animations `pseudoElement`, and client-only guards for SSR apps.
-- Cross-system behavior: verify Windows, macOS, iOS Safari, and Android Chrome/Samsung Internet where practical, including OS reduced-motion and system theme changes.
-- Smoothness: avoid default View Transition crossfade conflicts, one-frame flicker, incorrect z-index stacking, stale transition attributes, and direction mismatches.
-- Performance: animate compositable or bounded visual properties, avoid layout work during the animation, remove temporary transition state, and avoid heavy blur/filter/mask effects on large full-screen layers.
-- Accessibility: keep controls keyboard reachable, respect `prefers-reduced-motion`, set `color-scheme`, and prevent transition layers from blocking interaction or assistive technology.
+- 浏览器下限：动画路径仅在上述受支持版本运行；不支持浏览器和减少动态效果的用户立即获得最终主题。
+- 跨浏览器行为：检查 View Transition 伪元素、带 `pseudoElement` 的 Web Animations API，以及 SSR 的仅客户端保护。
+- 跨系统行为：在可行时检查 Windows、macOS、iOS Safari、Android Chrome/Samsung Internet，包括系统减少动态效果和系统主题变化。
+- 流畅性：避免默认交叉淡入淡出冲突、单帧闪烁、错误的 z-index 层级、残留过渡属性与方向不一致。
+- 性能：使用可合成或范围有限的视觉属性，避免动画期间触发布局，清除临时状态，避免大面积重度模糊、滤镜或遮罩。
+- 无障碍：保持键盘可达，遵循 `prefers-reduced-motion`，设置 `color-scheme`，并防止过渡层阻断交互或辅助技术。
 
-## Assets
+## 资源
 
-- `assets/theme-transition.ts`: dependency-free TypeScript controller with `THEME_ANIMATIONS`, `getAnimation()`, `setAnimation()`, `setMode(mode, event, animationOverride)`, and `toggle(event, animationOverride)`. Copy it into a frontend project or port the functions into an existing store.
-- `assets/theme-transition.css`: starter semantic tokens plus View Transition pseudo-element stacking rules for multi-preset animations. Merge with the project's design tokens instead of replacing unrelated styling.
-- `references/animation-implementation-review.md`: English implementation notes for every preset plus a review checklist for browser/OS compatibility, smoothness, performance, accessibility, and fallback behavior. Read it after generating or modifying animation code and use it to review the implementation before the final response.
+- `assets/theme-transition.ts`：无依赖 TypeScript 控制器，提供 `THEME_ANIMATIONS`、`getAnimation()`、`setAnimation()`、`setMode(mode, event, animationOverride)` 和 `toggle(event, animationOverride)`。可直接复制到前端项目，或将函数迁移至既有状态管理。
+- `assets/theme-transition.css`：多预设动画所需的语义令牌与 View Transition 伪元素层级起始样式。应与项目设计令牌合并，而不是覆盖无关样式。
+- `references/animation-implementation-review.md`：各预设的实现说明，以及浏览器/操作系统兼容性、流畅性、性能、无障碍和降级行为的审查清单。生成或修改动画代码后必须阅读，并据此审查。
 
-## Framework Notes
+## 框架说明
 
-React:
+React：
 
-- Call `controller.init()` before `createRoot().render(...)` in Vite/CRA style apps, or inside a client-only provider for SSR frameworks.
-- Store the controller in module scope or React context.
-- Use `onClick={(event) => controller.toggle(event)}` or `controller.toggle(event, selectedAnimation)`.
-- Re-render icons by subscribing through local state, context, Zustand, Redux, or `useSyncExternalStore`.
+- 在 Vite/CRA 风格项目中，于 `createRoot().render(...)` 前调用 `controller.init()`；SSR 框架则在仅客户端 Provider 中调用。
+- 将控制器放在模块作用域或 React context 中。
+- 使用 `onClick={(event) => controller.toggle(event)}` 或 `controller.toggle(event, selectedAnimation)`。
+- 通过本地 state、context、Zustand、Redux 或 `useSyncExternalStore` 订阅状态并重新渲染图标。
 
-Vue:
+Vue：
 
-- Initialize in `main.ts` before `app.mount(...)`.
-- Use `@click="controller.toggle($event)"` or `controller.toggle($event, selectedAnimation)`.
-- Mirror `controller.getResolvedTheme()` into a `ref` when icons need to react.
+- 在 `main.ts` 的 `app.mount(...)` 前初始化。
+- 使用 `@click="controller.toggle($event)"` 或 `controller.toggle($event, selectedAnimation)`。
+- 图标需要响应时，将 `controller.getResolvedTheme()` 映射至 `ref`。
 
-Svelte/SvelteKit:
+Svelte/SvelteKit：
 
-- Initialize in `onMount`.
-- Use `on:click={(event) => controller.toggle(event)}` or `controller.toggle(event, selectedAnimation)`.
-- Keep current mode/resolved theme in a writable store.
+- 在 `onMount` 中初始化。
+- 使用 `on:click={(event) => controller.toggle(event)}` 或 `controller.toggle(event, selectedAnimation)`。
+- 将当前模式/已解析主题保存在可写 store 中。
 
-Plain JavaScript:
+原生 JavaScript：
 
-- Import or paste the controller.
-- Call `const theme = createThemeController(); theme.init();`.
-- Wire buttons with `button.addEventListener("click", (event) => theme.toggle(event));`.
-- Wire animation controls with `theme.setAnimation(animationName)`.
+- 导入或粘贴控制器。
+- 调用 `const theme = createThemeController(); theme.init();`。
+- 用 `button.addEventListener("click", (event) => theme.toggle(event));` 绑定按钮。
+- 用 `theme.setAnimation(animationName)` 绑定动画控件。
 
-## Validation
+## 验证
 
-Run the project's normal checks after integration, usually `lint`, `typecheck`, and `build`.
+集成后运行项目的常规检查，通常是 `lint`、`typecheck` 和 `build`。
 
-Manual checks:
+手动检查：
 
-- Toggle from a sidebar/header button and confirm coordinate-based presets start at the click point.
-- Switch through all animation presets and confirm the fallback state still updates immediately.
-- Select explicit light/dark modes and system mode if the project exposes all three.
-- Enable reduced motion at OS/browser level and confirm no animation runs.
-- Temporarily force the fallback branch by checking `delete document.startViewTransition` in DevTools or by testing an unsupported browser.
-- Confirm form controls, scrollbars, and native UI pick up the correct `color-scheme`.
-- Run the exact sequential regression `light -> dark -> wait for completion -> light`. During the second transition, `::view-transition-old(root)` must have `clip-path: none`, the old dark page must remain visible outside the expanding light reveal, and no blank light canvas may appear.
+- 从侧边栏或页头按钮切换，确认坐标类预设从点击点开始。
+- 遍历全部动画预设，确认降级路径仍会立即更新状态。
+- 如果项目暴露三种模式，分别选择明确浅色/深色和系统模式。
+- 在操作系统或浏览器级别启用减少动态效果，确认不会播放动画。
+- 在 DevTools 中执行 `delete document.startViewTransition` 临时强制降级分支，或使用不支持的浏览器测试。
+- 确认表单控件、滚动条和原生 UI 使用正确的 `color-scheme`。
+- 严格按 `浅色 -> 深色 -> 等待完成 -> 浅色` 回归测试。第二次过渡中，`::view-transition-old(root)` 必须是 `clip-path: none`；旧深色页面应在扩散的浅色揭示区域外保持可见，且不得出现空白浅色画布。

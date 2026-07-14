@@ -79,7 +79,7 @@ function canUseDOM(): boolean {
 
 export function createThemeController(options: ThemeTransitionOptions = {}): ThemeController {
   if (!canUseDOM()) {
-    throw new Error("createThemeController must run in a browser/client context.");
+    throw new Error("createThemeController 必须在浏览器或客户端环境中运行。");
   }
 
   const root = options.root ?? document.documentElement;
@@ -112,7 +112,7 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
     try {
       window.localStorage.setItem(storageKey, nextMode);
     } catch {
-      // Ignore storage failures in private mode or restricted webviews.
+      // 忽略隐私模式或受限 WebView 中的存储失败。
     }
   }
 
@@ -121,7 +121,7 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
     try {
       window.localStorage.setItem(animationStorageKey, nextAnimation);
     } catch {
-      // Ignore storage failures in private mode or restricted webviews.
+      // 忽略隐私模式或受限 WebView 中的存储失败。
     }
   }
 
@@ -183,9 +183,8 @@ export function createThemeController(options: ThemeTransitionOptions = {}): The
     });
 
     const cleanup = (): void => {
-      // `fill: "forwards"` keeps the final frame stable until the View
-      // Transition tree disappears. Cancel it afterwards so its clip-path
-      // cannot affect the same pseudo-element in the next transition.
+      // `fill: "forwards"` 会在 View Transition 树消失前保持最终帧稳定。
+      // 之后取消动画，避免其 clip-path 影响下次过渡中的同一伪元素。
       transitionAnimation?.cancel();
       root.removeAttribute("data-theme-transition");
       root.removeAttribute("data-theme-animation");

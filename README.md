@@ -1,36 +1,35 @@
-# Personal Agent Skills
+# 个人 Agent Skills
 
-This repository contains reusable Agent Skills. Each skill lives in its own
-directory under `skills/` and includes a `SKILL.md` file.
+本仓库收录可复用的 Agent Skills。每个技能均位于 `skills/` 下独立目录中，并包含一个 `SKILL.md` 文件。
 
-## Available skills
+## 可用技能
 
-- `animated-theme-toggle` — Add, retrofit, or review animated light/dark theme switching in frontend projects.
+- `animated-theme-toggle` — 为前端项目添加、改造或评审带动画的明暗主题切换。
+- `project-refactor` — 中文项目重构工作流：先分析方案，再一次确认后自主实施与验证。
 
-## Install a skill
+## 安装技能
 
-List the skills available in this repository:
+列出本仓库提供的技能：
 
 ```bash
 npx skills add https://github.com/yrx100/agentSkills --list
 ```
 
-Install one skill by name:
+按名称安装一个技能：
 
 ```bash
 npx skills add https://github.com/yrx100/agentSkills --skill animated-theme-toggle
 ```
 
-Install globally for Codex without interactive prompts:
+为 Codex 全局安装（无交互提示）：
 
 ```bash
 npx skills add https://github.com/yrx100/agentSkills --skill animated-theme-toggle --agent codex --global --yes
 ```
 
-## Add another skill
+## 添加技能
 
-Create a new directory using the skill name and put its `SKILL.md` and optional
-resources inside it:
+以技能名创建新目录，并在其中放入 `SKILL.md` 和可选资源：
 
 ```text
 skills/
@@ -43,5 +42,4 @@ skills/
     └── SKILL.md
 ```
 
-Keep each skill name unique and use the same lowercase, hyphenated name for its
-directory and the `name` field in `SKILL.md`.
+请保持技能名唯一，并让目录名与 `SKILL.md` 中 `name` 字段使用相同的小写连字符格式名称。
